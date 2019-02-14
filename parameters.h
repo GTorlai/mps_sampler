@@ -9,10 +9,9 @@ class Parameters{
 
 public:
    
-    int N_;             // Number of hidden units 
-    double h_;             // Number of visible units
-    int ns_;   // Width of normal distribution for initial weights
-   
+    int N_;             // Number of sites 
+    int nsamples_;
+
     // Constructor
     Parameters() {
         // Default values
