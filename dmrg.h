@@ -18,7 +18,7 @@ public:
     
   DMRG(int nsites):nsites_(nsites){} 
   
-  inline MPS GetPsi() {
+  inline MPS GetWavefunction() {
       return psi_;
   }
   
@@ -78,7 +78,6 @@ public:
     psi_ = MPS(state);
   }
 
-
   void Run(){
       auto sweeps = Sweeps(10);
       sweeps.maxm() = 10,20,100,100,200;
@@ -136,12 +135,9 @@ public:
       }
       auto psi_sigma = CollapseWavefunction(sigma); 
       std::cout<<psi_sigma<<std::endl;
-      //std::cout<<psi_sigma.cplx().real()<<"  "<<psi_sigma.cplx().imag()<<std::endl;
     }
-    std::cout<<std::endl<<std::endl;
+    std::cout<<std::endl;
   }
-
-
 
 };
 
