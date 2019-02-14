@@ -105,7 +105,7 @@ public:
     return s;
   }
 
-  double CollapseWavefunction(std::vector<int> & sigma){
+  std::complex<double> CollapseWavefunction(std::vector<int> & sigma){
     ITensor psi_sigma;
     ITensor s;
     s = BasisState(sigma[0],psi_.A(1));
@@ -117,7 +117,7 @@ public:
       psi_sigma *= psi_.A(j);
       psi_sigma *= s;
     }
-    return psi_sigma.real();
+    return psi_sigma.cplx();
   }
 
   void PrintFullWavefunction(){

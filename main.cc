@@ -12,9 +12,10 @@ using namespace itensor;
 
 int main(int argc, char* argv[]) {
 
-  int nsites   = 6;
+  int nsites   = 4;
   int nsamples = 10000;
   std::string bc = "obc";
+  std::ifstream fin("bases.txt"); 
 
   DMRG dmrg(nsites);
   //dmrg.TransverseFieldIsing(1.0,bc);
@@ -25,6 +26,7 @@ int main(int argc, char* argv[]) {
   MPS psi = dmrg.GetWavefunction();
 
   Sampler sampler(nsites,nsamples,psi);
-  sampler.Test();  
-  return 0;
+  sampler.LoadBases(fin);
+  sampler.TestRotations(); 
+  sampler.TestSampler();  
 } 
