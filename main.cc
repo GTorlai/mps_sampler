@@ -12,21 +12,24 @@ using namespace itensor;
 
 int main(int argc, char* argv[]) {
 
-  int nsites   = 4;
+  int nsites   = 1000;
   int nsamples = 10000;
   std::string bc = "obc";
   std::ifstream fin("bases.txt"); 
 
   DMRG dmrg(nsites);
-  //dmrg.TransverseFieldIsing(1.0,bc);
-  dmrg.Heisenberg(bc);
+  dmrg.TransverseFieldIsing(1.0,bc);
   dmrg.InitializeRandom();
   dmrg.Run();
-  dmrg.PrintFullWavefunction();
+  //dmrg.PrintFullWavefunction();
   MPS psi = dmrg.GetWavefunction();
 
   Sampler sampler(nsites,nsamples,psi);
   sampler.LoadBases(fin);
-  sampler.TestRotations(); 
-  sampler.TestSampler();  
+  for(int k=0;k<nsamples;k++){
+    sampler.OneSample(psi);
+    sampler.PrintState();
+  }
+  //sampler.TestRotations(); 
+  //sampler.TestSampler();  
 } 

@@ -53,6 +53,28 @@ public:
     Hamiltonian_ = MPO(ampo);
   }
 
+  void J1J2(double J1,double J2,std::string bc){
+    sites_ = SpinHalf(nsites_);
+    auto ampo = AutoMPO(sites_);
+    for(int j = 1; j < nsites_; ++j) {
+      ampo += J1*0.5,"S+",j,"S-",j+1;
+      ampo += J1*0.5,"S-",j,"S+",j+1;
+      ampo += J1,    "Sz",j,"Sz",j+1;
+    }
+    for(int j = 1; j < nsites_-1; ++j) {
+      ampo += J2*0.5,"S+",j,"S-",j+2;
+      ampo += J2*0.5,"S-",j,"S+",j+2;
+      ampo += J2,    "Sz",j,"Sz",j+2;
+    }
+    
+    if (bc=="pbc"){
+      //TODO
+    }
+    Hamiltonian_ = MPO(ampo);
+  }
+
+  
+  
   void InitializeRandom(){
     auto state = InitState(sites_);
     std::uniform_int_distribution<int> distribution(0,1);
@@ -79,8 +101,8 @@ public:
   }
 
   void Run(){
-      auto sweeps = Sweeps(10);
-      sweeps.maxm() = 10,20,100,100,200;
+      auto sweeps = Sweeps(25);
+      sweeps.maxm() = 10,20,100,100,200,500,750,1000,1500,2000;
       sweeps.cutoff() = 1E-10;
       sweeps.niter() = 2;
       sweeps.noise() = 1E-7,1E-8,0.0;

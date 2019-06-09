@@ -38,7 +38,6 @@ public:
     pt = psi_.A(1);
     pt *= dag(prime(psi.A(1),Link));
     partial_tensors_.push_back(pt);
-    
     for (int j=2; j<N_; j++){
         pt *= psi.A(j);
         pt *= dag(prime(psi.A(j),Link));
@@ -77,6 +76,7 @@ public:
     tmp = dag(prime(psi.A(N_),Site,Link));
     rho *= tmp;
     prob = rho.real(2,2);
+    //std::cout<<prob<<std::endl;
     state_[N_-1] = distr(rgen_) < prob;
     if (state_[N_-1] == 1){
       joint_prob *= prob;
@@ -91,12 +91,12 @@ public:
     tmp = dag(prime(psi.A(N_-1),Site,Link));
     rho = rho * tmp;
     
-    trail = psi_.A(N_);
+    trail  = psi_.A(N_);
     trail *=BasisState(state_[N_-1],psi_.A(N_));
     trail *= dag(prime(psi.A(N_),Site,Link));
     trail *= prime(BasisState(state_[N_-1],psi.A(N_)),Site);
-    rho *= trail;
-    rho = rho / joint_prob;
+    rho   *= trail;
+    rho    = rho / joint_prob;
 
     prob = rho.real(2,2);
     state_[N_-2] = distr(rgen_) < prob;
@@ -106,7 +106,7 @@ public:
     else {
       joint_prob *=(1.0-prob);
     }
-    
+    //std::cout<<"state="<<state_[N_-1]<<" prob  = "<<prob<<std::endl; 
     // Sample the other spins
     for(int j= N_-2; j>0; j--){
       if(j>1){
@@ -118,13 +118,11 @@ public:
       }
       tmp = dag(prime(psi.A(j),Site,Link));
       rho = rho * tmp;
-      //PrintData(rho);
       trail *= psi.A(j+1);
       trail *= BasisState(state_[j],psi.A(j+1));
       trail *= dag(prime(psi.A(j+1),Site,Link));
       trail *= prime(BasisState(state_[j],psi.A(j+1)),Site);
-      //PrintData(trail);
-      rho *= trail;
+      rho   *= trail;
       rho = rho / joint_prob;
       prob = rho.real(2,2);
       state_[j-1] = distr(rgen_) < prob;
@@ -134,6 +132,7 @@ public:
       else {
         joint_prob *=(1.0-prob);
       }
+      //std::cout<<"state="<<state_[j]<<" prob  = "<<prob<<std::endl; 
     }
   }
    
@@ -181,10 +180,14 @@ public:
     auto s = findtype(A,Site);
     auto sp = prime(s);
     ITensor pauliY(s,sp);
+    //pauliY.set(s(1),sp(1),1.0/std::sqrt(2)); 
+    //pauliY.set(s(1),sp(2),-I_/std::sqrt(2)); 
+    //pauliY.set(s(2),sp(1),1.0/std::sqrt(2)); 
+    //pauliY.set(s(2),sp(2),I_/std::sqrt(2)); 
     pauliY.set(s(1),sp(1),1.0/std::sqrt(2)); 
-    pauliY.set(s(1),sp(2),-I_/std::sqrt(2)); 
-    pauliY.set(s(2),sp(1),1.0/std::sqrt(2)); 
-    pauliY.set(s(2),sp(2),I_/std::sqrt(2)); 
+    pauliY.set(s(1),sp(2),1.0/std::sqrt(2)); 
+    pauliY.set(s(2),sp(1),I_/std::sqrt(2)); 
+    pauliY.set(s(2),sp(2),-I_/std::sqrt(2)); 
     return pauliY;
   }
 
@@ -199,8 +202,8 @@ public:
         if (basis[j-1] == "X")
           rotation = PauliX(wf);
         if (basis[j-1] == std::string("Y"))
-          rotation = PauliY(wf);
-        prime(rotation,rotation.index(2),1);
+          rotation = dag(PauliY(wf));
+        //prime(rotation,rotation.index(2),1);
         wf *= rotation;
         wf.noprime();
         psi.setA(j,wf);
@@ -209,20 +212,35 @@ public:
     return psi;
   }
 
-
   void LoadBases(std::ifstream &fin){
     int num_bases;
     fin >> num_bases;
     std::cout<<num_bases<<std::endl;
     bases_.resize(num_bases,std::vector<std::string>(N_));
     for (int i=0;i<num_bases;i++){
-      //std::cout<<"Basis "<<i<<" : ";
       for(int j=0;j<N_;j++){
         fin >> bases_[i][j];
-        //std::cout<<bases_[i][j];
       }
-      //std::cout<<std::endl;
     }
+  }
+
+  void PrintFullWavefunction(MPS &psi){
+    if(N_>10){
+      std::cout<<"System size too large!"<<std::endl;
+      exit(0);
+    }
+    std::bitset<10> bit;
+    std::vector<int> sigma;
+    for(int i=0; i<1<<N_;i++){
+      bit = i;
+      sigma.clear();
+      for(int j=0;j<N_;j++){
+        sigma.push_back(bit[N_-1-j]);
+      }
+      auto psi_sigma = CollapseWavefunction(psi,sigma); 
+      std::cout<<psi_sigma<<std::endl;
+    }
+    std::cout<<std::endl;
   }
 
   void TestRotations(){
@@ -277,27 +295,12 @@ public:
       std::cout<< " \tSampled = " <<double(hist[i])/double(ns) << std::endl;
     }
   }
-
-  void PrintFullWavefunction(MPS &psi){
-    if(N_>10){
-      std::cout<<"System size too large!"<<std::endl;
-      exit(0);
+  void PrintState(){
+    for (int j=0;j<N_;j++){
+      std::cout<<state_[j];
     }
-    std::bitset<10> bit;
-    std::vector<int> sigma;
-    for(int i=0; i<1<<N_;i++){
-      bit = i;
-      sigma.clear();
-      for(int j=0;j<N_;j++){
-        sigma.push_back(bit[N_-1-j]);
-      }
-      auto psi_sigma = CollapseWavefunction(psi,sigma); 
-      std::cout<<psi_sigma<<std::endl;
-    }
-    std::cout<<std::endl;
+    std::cout<<std::endl<<std::endl;
   }
-
-
 };
 
 #endif 
