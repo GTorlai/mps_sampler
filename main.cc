@@ -6,34 +6,30 @@
 #include <iomanip>
 #include "sampler.h"
 #include "dmrg.h"
-#include "parameters.h"
 
 using namespace itensor;
     
 
 int main(int argc, char* argv[]) {
 
-    Parameters par;
-    par.ReadParameters(argc,argv);
-    par.PrintParameters(); 
-    int N = par.N_;
-    double h = par.h_;
+  int nsites   = 1000;
+  int nsamples = 10000;
+  std::string bc = "obc";
+  std::ifstream fin("bases.txt"); 
 
-    DMRG solver(N,h); 
-    solver.BuildHamiltonian();
-    solver.InitializeMPS();
-    solver.run_dmrg();
-    MPS psi = solver.GetPsi();
-    printfln("\nGround State Energy = %.10f",solver.gs_energy_/float(N));
+  DMRG dmrg(nsites);
+  dmrg.TransverseFieldIsing(1.0,bc);
+  dmrg.InitializeRandom();
+  dmrg.Run();
+  //dmrg.PrintFullWavefunction();
+  MPS psi = dmrg.GetWavefunction();
 
-    Sampler sampler(N,h,psi);
-    
-    
-    sampler.get_partial_tensors();
-    for(int k=0; k<ns_; k++){
-        std::cout<< k << std::endl;
-        sampler.sample();
-    }
-    
-    return 0;
+  Sampler sampler(nsites,nsamples,psi);
+  sampler.LoadBases(fin);
+  for(int k=0;k<nsamples;k++){
+    sampler.OneSample(psi);
+    sampler.PrintState();
+  }
+  //sampler.TestRotations(); 
+  //sampler.TestSampler();  
 } 
