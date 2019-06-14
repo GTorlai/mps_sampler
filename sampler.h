@@ -32,7 +32,7 @@ public:
   } 
   
   void GetPartialTensors(MPS &psi){
-
+    partial_tensors_.clear();
     ITensor pt; //partial tensor tmp variable
     
     pt = psi_.A(1);
